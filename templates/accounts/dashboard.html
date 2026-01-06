@@ -1,99 +1,7 @@
-<!DOCTYPE html>
-<html lang="en">
-  <head>
-    <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <meta http-equiv="X-UA-Compatible" content="ie=edge" />
-    <!-- Font Awesome -->
-    <link rel="stylesheet" href="assets/css/all.css" />
-    <!-- Bootstrap -->
-    <link rel="stylesheet" href="assets/css/bootstrap.css" />
-    <!-- Custom -->
-    <link rel="stylesheet" href="assets/css/style.css" />
-
-    <title>Dashboard - BC Health Care</title>
-  </head>
-
-  <body>
-    <!-- Top Bar -->
-    <section id="top-bar" class="p-3">
-      <div class="container">
-        <div class="row">
-          <div class="col-md-4">
-            <i class="fas fa-phone"></i> (852)-555-5555
-          </div>
-          <div class="col-md-4">
-            <i class="fas fa-envelope-open"></i> contact@healthcare.co
-          </div>
-          <div class="col-md-4">
-            <div class="social text-right">
-              <a href="#">
-                <i class="fab fa-twitter"></i>
-              </a>
-              <a href="#">
-                <i class="fab fa-facebook"></i>
-              </a>
-              <a href="#">
-                <i class="fab fa-linkedin"></i>
-              </a>
-              <a href="#">
-                <i class="fab fa-instagram"></i>
-              </a>
-              <a href="#">
-                <i class="fab fa-pinterest"></i>
-              </a>
-            </div>
-          </div>
-        </div>
-      </div>
-    </section>
-
-    <nav class="navbar navbar-expand-lg navbar-dark bg-primary sticky-top">
-      <div class="container">
-        <a class="navbar-brand" href="index.html">
-          <img src="assets/img/logo.png" class="logo" alt="" />
-        </a>
-        <button
-          class="navbar-toggler"
-          type="button"
-          data-toggle="collapse"
-          data-target="#navbarNavAltMarkup"
-        >
-          <span class="navbar-toggler-icon"></span>
-        </button>
-        <div class="collapse navbar-collapse" id="navbarNavAltMarkup">
-          <ul class="navbar-nav">
-            <li class="nav-item active mr-3">
-              <a class="nav-link" href="index.html">Home</a>
-            </li>
-            <li class="nav-item mr-3">
-              <a class="nav-link" href="about.html">About</a>
-            </li>
-            <li class="nav-item mr-3">
-              <a class="nav-link" href="listings.html"
-                >Inpatient medical services</a
-              >
-            </li>
-          </ul>
-
-          <ul class="navbar-nav ml-auto">
-            <li class="nav-item mr-3">
-              <a class="nav-link" href="register.html">
-                <i class="fas fa-user-plus"></i> Register</a
-              >
-            </li>
-            <li class="nav-item mr-3">
-              <a class="nav-link" href="login.html">
-                <i class="fas fa-sign-in-alt"></i>
-
-                Login</a
-              >
-            </li>
-          </ul>
-        </div>
-      </div>
-    </nav>
-
+{% extends 'base.html' %}
+<!-- load humanize -->
+{% load humanize %}
+{% block content %}
     <section id="showcase-inner" class="py-5 text-white">
       <div class="container">
         <div class="row text-center">
@@ -111,19 +19,20 @@
         <nav aria-label="breadcrumb">
           <ol class="breadcrumb">
             <li class="breadcrumb-item">
-              <a href="index.html"> <i class="fas fa-home"></i> Home</a>
+              <a href="{% url 'pages:index' %}"> <i class="fas fa-home"></i> Home</a>
             </li>
             <li class="breadcrumb-item active">Dashboard</li>
           </ol>
         </nav>
       </div>
     </section>
-
+    {% include 'partials/_alert.html' %}
     <section id="dashboard" class="py-4">
       <div class="container">
         <div class="row">
           <div class="col-md-12">
-            <h2>Welcome John</h2>
+            <h2>Welcome {{ user.username | title }}</h2>
+            {% if contacts %}
             <p>Here are the clinic listings that you have inquired about</p>
             <table class="table">
               <thead>
@@ -134,42 +43,43 @@
                 </tr>
               </thead>
               <tbody>
+                {% for contact in contacts %}
                 <tr>
-                  <td>22</td>
-                  <td>Harmony Health Clinic</td>
+                  <td>{{ contact.listing_id }}</td>
+                  <td>{{ contact.listing | title }}</td>
                   <td>
-                    <a class="btn btn-light" href="#">View Listing</a>
+                    <a class="btn btn-light" href="{% url 'listings:listing' contact.listing_id %}">View Listing</a>
+                    <button class="btn btn-danger" data-url="{% url 'contacts:delete_contact' contact.id %}" 
+                    data-toggle="modal" 
+                    data-target="#deleteConfirmModal" 
+                    data-id="{{contact.id}}">Delete Listing</button>
+                    <a href="{% url 'contacts:edit_contact' contact.id %}" class="btn btn-success">Edit message</a>
                   </td>
                 </tr>
-                <tr>
-                  <td>43</td>
-                  <td>BrightCare Health Clinic</td>
-                  <td>
-                    <a class="btn btn-light" href="#">View Listing</a>
-                  </td>
-                </tr>
-                <tr>
-                  <td>31</td>
-                  <td>Healing Horizons Clinic</td>
-                  <td>
-                    <a class="btn btn-light" href="#">View Listing</a>
-                  </td>
-                </tr>
+                {% endfor %}
               </tbody>
             </table>
+            {% else %}
+            <p>You have not made any inquiries yet.</p>
+            {% endif %}
           </div>
         </div>
       </div>
     </section>
-
-    <!-- Footer -->
-    <footer id="main-footer" class="py-4 bg-primary text-white text-center">
-      Copyright &copy;
-      <span class="year"></span> BC Health Care
-    </footer>
-
-    <script src="assets/js/jquery-3.3.1.min.js "></script>
-    <script src="assets/js/bootstrap.bundle.min.js "></script>
-    <script src="assets/js/main.js "></script>
-  </body>
-</html>
+<!-- delete modal -->
+<div class="modal fade" id="deleteConfirmModal" role="dialog">
+  <div class="modal-dialog">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title" id="deleteModalLabel">Confirm DELETE</h5>
+        <button class="close" type="button" data-dismiss="modal">&times;</button>
+      </div>
+      <div class="modal-body">
+        <p>Are you sure you want to delete this inquiry?</p>
+        <a href="" class="btn btn-danger" id="confirmDeleteBtn">Yes</a>
+        <button class="btn btn-info" data-dismiss="modal">Cancel</button>
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock content %}
